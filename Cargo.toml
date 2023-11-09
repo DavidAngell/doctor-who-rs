@@ -1,11 +1,11 @@
 [package]
-name = "rusty-doctor-api"
+name = "doctor-who-rs"
 version = "0.1.0"
 edition = "2021"
 authors = ["David Angell <davidjangell42@gmail.com>"]
 # license = "MIT"
 description = "A rust wrapper for the dana-ross's catalogopolis-api to retrieve information on Doctor Who episodes and related data"
-repository = "https://github.com/DavidAngell/rusty-doctor-api"
+repository = "https://github.com/DavidAngell/doctor-who-rs"
 readme = "README.md"
 keywords = ["rust", "doctor who", "api", "wrapper"]
 
@@ -13,7 +13,7 @@ keywords = ["rust", "doctor who", "api", "wrapper"]
 
 [dependencies]
 anyhow = "1.0.75"
-reqwest = "0.11.22"
+# reqwest = "0.11.22"
 serde = "1.0.192"
 serde_derive = "1.0.192"
 serde_json = "1.0.108"
