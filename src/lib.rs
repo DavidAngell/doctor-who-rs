@@ -31,6 +31,109 @@ impl DoctorWhoData {
         let json = serde_json::from_str(&data)?;
         Ok(json)
     }
+
+    // Actor methods
+    pub fn get_all_actors(&self) -> Vec<&Actor> {
+        self.actors.iter().collect()
+    }
+
+    pub fn get_actor_by_id(&self, id: i32) -> Option<&Actor> {
+        self.actors.iter().find(|&a| a.id == id)
+    }
+
+    pub fn get_all_doctors_by_actor(&self, actor: Actor) -> Vec<&Doctor> {
+        self.doctors.iter().filter(|&d| d.primary_actor == actor.id).collect()
+    }
+
+    // Companion methods
+    pub fn get_all_companions(&self) -> Vec<&Companion> {
+        self.companions.iter().collect()
+    }
+
+    pub fn get_companion_by_id(&self, id: i32) -> Option<&Companion> {
+        self.companions.iter().find(|&c| c.id == id)
+    }
+
+    pub fn get_serials_by_companion(&self, companion: Companion) -> Vec<&Serial> {
+        let serial_ids: Vec<i32> = self.serials_companions.iter()
+            .filter(|&sc| sc.companion_id == companion.id)
+            .map(|sc| sc.serial_id)
+            .collect();
+
+        self.serials.iter()
+            .filter(|&s| serial_ids.contains(&s.id))
+            .collect()
+    }
+
+    // Director methods
+    pub fn get_all_directors(&self) -> Vec<&Director> {
+        self.directors.iter().collect()
+    }
+
+    pub fn get_director_by_id(&self, id: i32) -> Option<&Director> {
+        self.directors.iter().find(|&d| d.id == id)
+    }
+
+    pub fn get_serials_by_director(&self, director: Director) -> Vec<&Serial> {
+        let serial_ids: Vec<i32> = self.serials_directors.iter()
+            .filter(|&sd| sd.director_id == director.id)
+            .map(|sd| sd.serial_id)
+            .collect();
+
+        self.serials.iter()
+            .filter(|&s| serial_ids.contains(&s.id))
+            .collect()
+    }
+
+    // Doctor methods
+    pub fn get_all_doctors(&self) -> Vec<&Doctor> {
+        self.doctors.iter().collect()
+    }
+
+    pub fn get_doctor_by_id(&self, id: i32) -> Option<&Doctor> {
+        self.doctors.iter().find(|&d| d.id == id)
+    }
+
+    pub fn get_actors_who_played_doctor(&self, doctor: Doctor) -> Vec<&Actor> {
+        self.actors.iter()
+            .filter(|&a| a.id == doctor.primary_actor)
+            .collect()
+    }
+
+    pub fn get_serials_by_doctor(&self, doctor: Doctor) -> Vec<&Serial> {
+        let serial_ids: Vec<i32> = self.serials_doctors.iter()
+            .filter(|&sd| sd.doctor_id == doctor.id)
+            .map(|sd| sd.serial_id)
+            .collect();
+
+        self.serials.iter()
+            .filter(|&s| serial_ids.contains(&s.id))
+            .collect()
+    }
+
+    // Episode methods
+    pub fn get_all_episodes(&self) -> Vec<&Episode> {
+        self.episodes.iter().collect()
+    }
+
+    pub fn get_episode_by_id(&self, id: i32) -> Option<&Episode> {
+        self.episodes.iter().find(|&e| e.id == id)
+    }
+
+    // Season methods
+    pub fn get_all_seasons(&self) -> Vec<&Season> {
+        self.seasons.iter().collect()
+    }
+
+    pub fn get_season_by_id(&self, id: i32) -> Option<&Season> {
+        self.seasons.iter().find(|&s| s.id == id)
+    }
+
+    pub fn get_serials_by_season(&self, season: Season) -> Vec<&Serial> {
+        self.serials.iter()
+            .filter(|&s| s.season_id == season.id)
+            .collect()
+    }
 }
 
 #[derive(Debug, Deserialize)]
