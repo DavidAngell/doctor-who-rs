@@ -1,12 +1,99 @@
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
-extern crate reqwest;
 
 use std::io::Read;
 use anyhow::Result;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Actor {
+    pub id: i32,
+    pub name: String,
+    pub gender: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Companion {
+    pub id: i32,
+    pub name: String,
+    pub actor: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Director {
+    pub id: i32,
+    pub name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Doctor {
+    pub id: i32,
+    pub incarnation: String,
+    pub primary_actor: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Episode {
+    pub id: i32,
+    pub title: String,
+    pub serial_id: i32,
+    pub story: Option<String>,
+    pub episode_order: String,
+    pub original_air_date: String,
+    pub runtime: String,
+    pub uk_viewers_mm: f32,
+    pub appreciation_index: i32,
+    pub missing: i32,
+    pub recreated: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Season {
+    pub id: i32,
+    pub name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Serial {
+    pub id: i32,
+    pub season_id: i32,
+    pub story: String,
+    pub serial: i32,
+    pub title: String,
+    pub production_code: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Writer {
+    pub id: i32,
+    pub name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SerialCompanion {
+    pub serial_id: i32,
+    pub companion_id: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SerialDirector {
+    pub serial_id: i32,
+    pub director_id: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SerialDoctor {
+    pub serial_id: i32,
+    pub doctor_id: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SerialWriter {
+    pub serial_id: i32,
+    pub writer_id: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DoctorWhoData {
     pub actors: Vec<Actor>,
     pub companions: Vec<Companion>,
@@ -33,28 +120,34 @@ impl DoctorWhoData {
     }
 
     // Actor methods
-    pub fn get_all_actors(&self) -> Vec<&Actor> {
+    pub fn get_actors(&self) -> Vec<&Actor> {
         self.actors.iter().collect()
     }
 
-    pub fn get_actor_by_id(&self, id: i32) -> Option<&Actor> {
+    pub fn get_actor(&self, id: i32) -> Option<&Actor> {
         self.actors.iter().find(|&a| a.id == id)
     }
 
-    pub fn get_all_doctors_by_actor(&self, actor: Actor) -> Vec<&Doctor> {
+    pub fn get_actor_doctors(&self, actor: Actor) -> Vec<&Doctor> {
         self.doctors.iter().filter(|&d| d.primary_actor == actor.id).collect()
     }
 
     // Companion methods
-    pub fn get_all_companions(&self) -> Vec<&Companion> {
+    pub fn get_companions(&self) -> Vec<&Companion> {
         self.companions.iter().collect()
     }
 
-    pub fn get_companion_by_id(&self, id: i32) -> Option<&Companion> {
+    pub fn get_companion(&self, id: i32) -> Option<&Companion> {
         self.companions.iter().find(|&c| c.id == id)
     }
 
-    pub fn get_serials_by_companion(&self, companion: Companion) -> Vec<&Serial> {
+    pub fn get_companion_actors(&self, companion: &Companion) -> Vec<&Actor> {
+        self.actors.iter()
+            .filter(|&a| a.id == companion.actor)
+            .collect()
+    }
+
+    pub fn get_companion_serials(&self, companion: &Companion) -> Vec<&Serial> {
         let serial_ids: Vec<i32> = self.serials_companions.iter()
             .filter(|&sc| sc.companion_id == companion.id)
             .map(|sc| sc.serial_id)
@@ -66,15 +159,15 @@ impl DoctorWhoData {
     }
 
     // Director methods
-    pub fn get_all_directors(&self) -> Vec<&Director> {
+    pub fn get_directors(&self) -> Vec<&Director> {
         self.directors.iter().collect()
     }
 
-    pub fn get_director_by_id(&self, id: i32) -> Option<&Director> {
+    pub fn get_director(&self, id: i32) -> Option<&Director> {
         self.directors.iter().find(|&d| d.id == id)
     }
 
-    pub fn get_serials_by_director(&self, director: Director) -> Vec<&Serial> {
+    pub fn get_director_serials(&self, director: &Director) -> Vec<&Serial> {
         let serial_ids: Vec<i32> = self.serials_directors.iter()
             .filter(|&sd| sd.director_id == director.id)
             .map(|sd| sd.serial_id)
@@ -86,21 +179,21 @@ impl DoctorWhoData {
     }
 
     // Doctor methods
-    pub fn get_all_doctors(&self) -> Vec<&Doctor> {
+    pub fn get_doctors(&self) -> Vec<&Doctor> {
         self.doctors.iter().collect()
     }
 
-    pub fn get_doctor_by_id(&self, id: i32) -> Option<&Doctor> {
+    pub fn get_doctor(&self, id: i32) -> Option<&Doctor> {
         self.doctors.iter().find(|&d| d.id == id)
     }
 
-    pub fn get_actors_who_played_doctor(&self, doctor: Doctor) -> Vec<&Actor> {
+    pub fn get_doctor_actors(&self, doctor: Doctor) -> Vec<&Actor> {
         self.actors.iter()
             .filter(|&a| a.id == doctor.primary_actor)
             .collect()
     }
 
-    pub fn get_serials_by_doctor(&self, doctor: Doctor) -> Vec<&Serial> {
+    pub fn get_doctor_serials(&self, doctor: &Doctor) -> Vec<&Serial> {
         let serial_ids: Vec<i32> = self.serials_doctors.iter()
             .filter(|&sd| sd.doctor_id == doctor.id)
             .map(|sd| sd.serial_id)
@@ -112,114 +205,119 @@ impl DoctorWhoData {
     }
 
     // Episode methods
-    pub fn get_all_episodes(&self) -> Vec<&Episode> {
+    pub fn get_episodes(&self) -> Vec<&Episode> {
         self.episodes.iter().collect()
     }
 
-    pub fn get_episode_by_id(&self, id: i32) -> Option<&Episode> {
+    pub fn get_episode(&self, id: i32) -> Option<&Episode> {
         self.episodes.iter().find(|&e| e.id == id)
     }
 
     // Season methods
-    pub fn get_all_seasons(&self) -> Vec<&Season> {
+    pub fn get_seasons(&self) -> Vec<&Season> {
         self.seasons.iter().collect()
     }
 
-    pub fn get_season_by_id(&self, id: i32) -> Option<&Season> {
+    pub fn get_season(&self, id: i32) -> Option<&Season> {
         self.seasons.iter().find(|&s| s.id == id)
     }
 
-    pub fn get_serials_by_season(&self, season: Season) -> Vec<&Serial> {
-        self.serials.iter()
-            .filter(|&s| s.season_id == season.id)
+    pub fn get_season_serial(&self, season: Season) -> Option<&Serial> {
+        self.serials.iter().find(|&s| s.season_id == season.id)
+    }
+
+    // Serial methods
+    pub fn get_serials(&self) -> Vec<&Serial> {
+        self.serials.iter().collect()
+    }
+
+    pub fn get_serial(&self, id: i32) -> Option<&Serial> {
+        self.serials.iter().find(|&s| s.id == id)
+    }
+
+    pub fn get_serial_episodes(&self, serial: &Serial) -> Vec<&Episode> {
+        self.episodes.iter()
+            .filter(|&e| e.serial_id == serial.id)
             .collect()
     }
-}
 
-#[derive(Debug, Deserialize)]
-pub struct Actor {
-    id: i32,
-    name: String,
-    gender: String,
-}
+    pub fn get_serial_directors(&self, serial: &Serial) -> Vec<&Director> {
+        let director_ids: Vec<i32> = self.serials_directors.iter()
+            .filter(|&sd| sd.serial_id == serial.id)
+            .map(|sd| sd.director_id)
+            .collect();
 
-#[derive(Debug, Deserialize)]
-pub struct Companion {
-    id: i32,
-    name: String,
-    actor: i32,
-}
+        self.directors.iter()
+            .filter(|&d| director_ids.contains(&d.id))
+            .collect()
+    }
 
-#[derive(Debug, Deserialize)]
-pub struct Director {
-    id: i32,
-    name: String,
-}
+    pub fn get_serial_writers(&self, serial: &Serial) -> Vec<&Writer> {
+        let writer_ids: Vec<i32> = self.serials_writers.iter()
+            .filter(|&sw| sw.serial_id == serial.id)
+            .map(|sw| sw.writer_id)
+            .collect();
 
-#[derive(Debug, Deserialize)]
-pub struct Doctor {
-    id: i32,
-    incarnation: String,
-    primary_actor: i32,
-}
+        self.writers.iter()
+            .filter(|&w| writer_ids.contains(&w.id))
+            .collect()
+    }
 
-#[derive(Debug, Deserialize)]
-pub struct Episode {
-    id: i32,
-    title: String,
-    serial_id: i32,
-    story: Option<String>,
-    episode_order: String,
-    original_air_date: String,
-    runtime: String,
-    uk_viewers_mm: f32,
-    appreciation_index: i32,
-    missing: i32,
-    recreated: i32,
-}
+    pub fn get_serial_doctors(&self, serial: &Serial) -> Vec<&Doctor> {
+        let doctor_ids: Vec<i32> = self.serials_doctors.iter()
+            .filter(|&sd| sd.serial_id == serial.id)
+            .map(|sd| sd.doctor_id)
+            .collect();
 
-#[derive(Debug, Deserialize)]
-pub struct Season {
-    id: i32,
-    name: String,
-}
+        self.doctors.iter()
+            .filter(|&d| doctor_ids.contains(&d.id))
+            .collect()
+    }
 
-#[derive(Debug, Deserialize)]
-pub struct Serial {
-    id: i32,
-    season_id: i32,
-    story: String,
-    serial: i32,
-    title: String,
-    production_code: String,
-}
+    pub fn get_serial_companions(&self, serial: &Serial) -> Vec<&Companion> {
+        let companion_ids: Vec<i32> = self.serials_companions.iter()
+            .filter(|&sc| sc.serial_id == serial.id)
+            .map(|sc| sc.companion_id)
+            .collect();
 
-#[derive(Debug, Deserialize)]
-pub struct Writer {
-    id: i32,
-    name: String,
-}
+        self.companions.iter()
+            .filter(|&c| companion_ids.contains(&c.id))
+            .collect()
+    }
 
-#[derive(Debug, Deserialize)]
-pub struct SerialCompanion {
-    serial_id: i32,
-    companion_id: i32,
-}
+    // Writer methods
+    pub fn get_writers(&self) -> Vec<&Writer> {
+        self.writers.iter().collect()
+    }
 
-#[derive(Debug, Deserialize)]
-pub struct SerialDirector {
-    serial_id: i32,
-    director_id: i32,
-}
+    pub fn get_writer(&self, id: i32) -> Option<&Writer> {
+        self.writers.iter().find(|&w| w.id == id)
+    }
 
-#[derive(Debug, Deserialize)]
-pub struct SerialDoctor {
-    serial_id: i32,
-    doctor_id: i32,
-}
+    pub fn get_writer_serials(&self, writer: &Writer) -> Vec<&Serial> {
+        let serial_ids: Vec<i32> = self.serials_writers.iter()
+            .filter(|&sw| sw.writer_id == writer.id)
+            .map(|sw| sw.serial_id)
+            .collect();
 
-#[derive(Debug, Deserialize)]
-pub struct SerialWriter {
-    serial_id: i32,
-    writer_id: i32,
+        self.serials.iter()
+            .filter(|&s| serial_ids.contains(&s.id))
+            .collect()
+    }
+
+    pub fn get_writer_episodes(&self, writer: &Writer) -> Vec<&Episode> {
+        let serial_ids: Vec<i32> = self.serials_writers.iter()
+            .filter(|&sw| sw.writer_id == writer.id)
+            .map(|sw| sw.serial_id)
+            .collect();
+
+        let episode_ids: Vec<i32> = self.episodes.iter()
+            .filter(|&e| serial_ids.contains(&e.serial_id))
+            .map(|e| e.id)
+            .collect();
+
+        self.episodes.iter()
+            .filter(|&e| episode_ids.contains(&e.id))
+            .collect()
+    }
 }
