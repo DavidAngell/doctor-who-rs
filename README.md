@@ -1,0 +1,1 @@
+A rust wrapper for the dana-ross's catalogopolis-api to retrieve information on Doctor Who episodes and related data
