@@ -10,7 +10,7 @@ A rust wrapper for information about Doctor Who episodes, seasons, series, write
 <!-- CONTRIBUTING -->
 ## Contributing
 
-If you have a suggestion that would make this site, please fork the repo and create a pull request. You can also simply open an issue with the tag "i did john's mom". Thank You.
+If you have a suggestion that would make this site, please fork the repo and create a pull request. Thank You.
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
